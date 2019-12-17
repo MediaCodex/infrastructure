@@ -7,11 +7,11 @@ locals {
 resource "aws_s3_bucket" "terraform_state" {
   bucket = local.bucket_name
   acl    = "private"
-  policy = data.aws_iam_policy_document.prevent_unencrypted_uploads.*.json
+  policy = data.aws_iam_policy_document.prevent_unencrypted_uploads.json
 
-  versioning = {
+  versioning {
     enabled = true
-    mfa_delete = true
+    // TODO: mfa_delete = true
   }
 
   server_side_encryption_configuration {
@@ -26,8 +26,6 @@ resource "aws_s3_bucket" "terraform_state" {
 }
 
 data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
-  count = local.prevent_unencrypted_uploads ? 1 : 0
-
   statement {
     sid = "DenyIncorrectEncryptionHeader"
 
@@ -86,7 +84,7 @@ data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
 }
 
 resource "aws_s3_bucket_public_access_block" "terraform_state" {
-  bucket                  = aws_s3_bucket.default.id
+  bucket                  = aws_s3_bucket.terraform_state.id
   block_public_acls       = true
   ignore_public_acls      = true
   block_public_policy     = true
@@ -94,7 +92,6 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 }
 
 resource "aws_dynamodb_table" "terraform_lock" {
-  count          = var.enable_server_side_encryption ? 1 : 0
   name           = local.dynamo_name
   read_capacity  = 5
   write_capacity = 5
