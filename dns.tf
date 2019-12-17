@@ -1,0 +1,30 @@
+resource "cloudflare_zone" "main" {
+    zone = "mediacodex.net"
+}
+
+/*
+ * Webmail
+ */
+resource "cloudflare_record" "webmail_mx10" {
+  zone_id  = cloudflare_zone.main.id
+  name     = "@"
+  type     = "MX"
+  value    = "spool.mail.gandi.net"
+  ttl      = 10800
+  priority = 10
+}
+resource "cloudflare_record" "webmail_mx50" {
+  zone_id  = cloudflare_zone.main.id
+  name     = "@"
+  type     = "MX"
+  value    = "fb.mail.gandi.net"
+  ttl      = 10800
+  priority = 50
+}
+resource "cloudflare_record" "webmail_spf" {
+  zone_id  = cloudflare_zone.main.id
+  name     = "@"
+  type     = "TXT"
+  value    = "v=spf1 include:_mailcust.gandi.net ?all"
+  ttl      = 10800
+}

@@ -6,6 +6,10 @@ provider "aws" {
   ]
 }
 
+provider "cloudflare" {
+  version = "~> 2.0"
+}
+
 terraform {
   backend "s3" {
     bucket = "mediacodex-terraform-state-dev"
