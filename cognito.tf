@@ -2,7 +2,7 @@ resource "aws_cognito_user_pool" "default" {
   name = "mediacodex"
 
   //from = "noreply@${var.domain}"
-  mfa_configuration = "OPTIONAL"
+  // TODO: mfa_configuration = "OPTIONAL"
 
   device_configuration {
     challenge_required_on_new_device      = true
