@@ -1,6 +1,8 @@
 resource "aws_cognito_user_pool" "default" {
   name = "mediacodex"
-  tags = var.default_tags
+
+  //from = "noreply@${var.domain}"
+  mfa_configuration = "OPTIONAL"
 
   device_configuration {
     challenge_required_on_new_device      = true
@@ -8,6 +10,19 @@ resource "aws_cognito_user_pool" "default" {
   }
 
   email_configuration {
-    email_sending_account = "SES"
+    email_sending_account = "DEVELOPER"
+    source_arn            = aws_ses_domain_identity.default.arn
   }
+
+  // https://docs.microsoft.com/en-us/office365/admin/misc/password-policy-recommendations
+  // https://pages.nist.gov/800-63-3/sp800-63b.html
+  password_policy {
+    minimum_length    = 8
+    require_lowercase = true
+    require_uppercase = true
+    require_numbers   = true
+    require_symbols   = true
+  }
+
+  tags = var.default_tags
 }
