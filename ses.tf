@@ -18,3 +18,20 @@ resource "aws_ses_domain_identity_verification" "default" {
   depends_on = [cloudflare_record.ses_verification]
   provider = aws.eu-west-1
 }
+
+/*
+ * DKIM
+ */
+resource "aws_ses_domain_dkim" "default" {
+  domain = aws_ses_domain_identity.default.domain
+  provider = aws.eu-west-1
+}
+resource "cloudflare_record" "ses_dkim" {
+  count = 3 // TODO: fix using for_each (TF race condition)
+
+  zone_id = cloudflare_zone.main.id
+  name    = "${element(aws_ses_domain_dkim.default.dkim_tokens, count.index)}._domainkey"
+  type    = "CNAME"
+  value   = "${element(aws_ses_domain_dkim.default.dkim_tokens, count.index)}.dkim.amazonses.com"
+  ttl     = 600
+}
