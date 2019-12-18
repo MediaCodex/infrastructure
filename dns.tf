@@ -27,6 +27,6 @@ resource "cloudflare_record" "webmail_spf" {
   zone_id = cloudflare_zone.main.id
   name    = "@"
   type    = "TXT"
-  value   = "v=spf1 include:_mailcust.gandi.net ?all"
+  value   = "v=spf1 include:_mailcust.gandi.net include:amazonses.com ~all"
   ttl     = 10800
 }
