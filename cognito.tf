@@ -3,7 +3,7 @@ resource "aws_cognito_user_pool" "default" {
   tags = var.default_tags
 
   device_configuration {
-    challenge_required_on_new_device = true
+    challenge_required_on_new_device      = true
     device_only_remembered_on_user_prompt = true
   }
 

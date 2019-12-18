@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket = "mediacodex-terraform-state-dev"
-    key    = "infrastructure.tfstate"
-    region = "eu-west-2"
-    encrypt = true
+    bucket         = "mediacodex-terraform-state-dev"
+    key            = "infrastructure.tfstate"
+    region         = "eu-west-2"
+    encrypt        = true
     dynamodb_table = "mediacodex-terraform-lock-dev"
   }
 }

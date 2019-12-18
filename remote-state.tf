@@ -1,7 +1,7 @@
 locals {
   bucket_name = "mediacodex-terraform-state-dev"
   dynamo_name = "mediacodex-terraform-lock-dev"
-  region = "eu-west-2" //TODO: add replication
+  region      = "eu-west-2" //TODO: add replication
 }
 
 resource "aws_s3_bucket" "terraform_state" {
