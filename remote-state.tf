@@ -37,11 +37,11 @@ data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
     }
 
     actions = [
-      "s3:PutObject",
+      "s3:PutObject"
     ]
 
     resources = [
-      "arn:aws:s3:::${local.bucket_name}/*",
+      "arn:aws:s3:::${local.bucket_name}/*"
     ]
 
     condition {
@@ -49,7 +49,7 @@ data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
       variable = "s3:x-amz-server-side-encryption"
 
       values = [
-        "AES256",
+        "AES256"
       ]
     }
   }
@@ -69,7 +69,7 @@ data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
     ]
 
     resources = [
-      "arn:aws:s3:::${local.bucket_name}/*",
+      "arn:aws:s3:::${local.bucket_name}/*"
     ]
 
     condition {
@@ -77,7 +77,7 @@ data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
       variable = "s3:x-amz-server-side-encryption"
 
       values = [
-        "true",
+        "true"
       ]
     }
   }
