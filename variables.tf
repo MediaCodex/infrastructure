@@ -13,3 +13,10 @@ variable "domain" {
   description = "Domain Name"
   default     = "mediacodex.net"
 }
+
+variable "aws_allowed_accounts" {
+  type = list(string)
+  default = [
+    "022451593157"
+  ]
+}

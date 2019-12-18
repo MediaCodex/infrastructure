@@ -1,5 +1,6 @@
 resource "aws_ses_domain_identity" "default" {
   domain = var.domain
+  provider = aws.eu-west-1
 }
 
 /*
@@ -15,12 +16,5 @@ resource "cloudflare_record" "ses_verification" {
 resource "aws_ses_domain_identity_verification" "default" {
   domain     = aws_ses_domain_identity.default.id
   depends_on = [cloudflare_record.ses_verification]
-}
-
-/*
- * Mail FROM
- */
-resource "aws_ses_domain_mail_from" "defauly" {
-  domain           = aws_ses_domain_identity.default.domain
-  mail_from_domain = aws_ses_domain_identity.default.domain
+  provider = aws.eu-west-1
 }
