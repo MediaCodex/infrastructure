@@ -1,13 +1,11 @@
 locals {
-  bucket_name = "mediacodex-terraform-state-dev"
-  dynamo_name = "mediacodex-terraform-lock-dev"
-  region      = "eu-west-2" //TODO: add replication
+  bucket_name = "mediacodex-terraform-state-" // this is suffixed with a random id
+  dynamo_name = "mediacodex-terraform-lock"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = local.bucket_name
+  bucket_prefix = local.bucket_name
   acl    = "private"
-  policy = data.aws_iam_policy_document.prevent_unencrypted_uploads.json
 
   versioning {
     enabled = true
@@ -23,6 +21,12 @@ resource "aws_s3_bucket" "terraform_state" {
   }
 
   tags = var.default_tags
+}
+
+resource "aws_s3_bucket_policy" "terraform_state" {
+  depends_on = [aws_s3_bucket.terraform_state]
+  bucket = aws_s3_bucket.terraform_state.id
+  policy = data.aws_iam_policy_document.prevent_unencrypted_uploads.json
 }
 
 data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
@@ -41,7 +45,7 @@ data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
     ]
 
     resources = [
-      "arn:aws:s3:::${local.bucket_name}/*"
+      "${aws_s3_bucket.terraform_state.arn}/*"
     ]
 
     condition {
@@ -69,7 +73,7 @@ data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
     ]
 
     resources = [
-      "arn:aws:s3:::${local.bucket_name}/*"
+      "${aws_s3_bucket.terraform_state.arn}/*"
     ]
 
     condition {
