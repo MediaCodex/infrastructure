@@ -1,6 +1,5 @@
 resource "aws_ses_domain_identity" "default" {
   domain = var.domain
-  provider = aws.eu-west-1
 }
 
 /*
@@ -16,7 +15,6 @@ resource "cloudflare_record" "ses_verification" {
 resource "aws_ses_domain_identity_verification" "default" {
   domain     = aws_ses_domain_identity.default.id
   depends_on = [cloudflare_record.ses_verification]
-  provider = aws.eu-west-1
 }
 
 /*
@@ -24,7 +22,6 @@ resource "aws_ses_domain_identity_verification" "default" {
  */
 resource "aws_ses_domain_dkim" "default" {
   domain = aws_ses_domain_identity.default.domain
-  provider = aws.eu-west-1
 }
 resource "cloudflare_record" "ses_dkim" {
   count = 3 // TODO: fix using for_each (TF race condition)
