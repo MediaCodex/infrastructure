@@ -9,10 +9,10 @@ resource "aws_cognito_user_pool" "default" {
     device_only_remembered_on_user_prompt = true
   }
 
-  email_configuration {
+  /*email_configuration {
     email_sending_account = "DEVELOPER"
     source_arn            = aws_ses_domain_identity.default.arn
-  }
+  }*/
 
   // https://docs.microsoft.com/en-us/office365/admin/misc/password-policy-recommendations
   // https://pages.nist.gov/800-63-3/sp800-63b.html
