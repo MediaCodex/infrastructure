@@ -1,5 +1,8 @@
 # MediaCodex Infrastructure
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mediacodex_infrastructure&metric=alert_status)](https://sonarcloud.io/dashboard?id=mediacodex_infrastructure)
+[![build status](https://gitlab.com/mediacodex/infrastructure/badges/master/pipeline.svg)](https://gitlab.com/mediacodex/infrastructure/pipelines)
+
 Since this is essentially the core of all of the MediaCodex projects, this is the repo that need to be deployed first.
 
 ## Init Terraform
