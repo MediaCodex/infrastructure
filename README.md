@@ -22,6 +22,8 @@ TF_STATE_BUCKET='some-bucket-name'
 export TF_CLI_ARGS_init="-backend-config=\"bucket=${TF_STATE_BUCKET}\""
 ```
 
-| Name                 | Required | Description                                                                                | Default Value |
-| -------------------- | -------- | ------------------------------------------------------------------------------------------ | ------------- |
-| CLOUDFLARE_API_TOKEN | Yes      | [Cloudflare Authentication](https://www.terraform.io/docs/providers/cloudflare/index.html) |               |
+| Name                 | Required | Description                                                                                | Default Value    |
+| -------------------- | -------- | ------------------------------------------------------------------------------------------ | ---------------- |
+| CLOUDFLARE_API_TOKEN | Yes      | [Cloudflare Authentication](https://www.terraform.io/docs/providers/cloudflare/index.html) |                  |
+| SONAR_HOST_URL       | No       | Sonar host                                                                                 | Configured in CI |
+| SONAR_TOKEN          | No       | Sonar auth                                                                                 | Configured in CI |
