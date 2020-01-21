@@ -15,8 +15,8 @@ terraform {
 }
 
 provider "aws" {
-  version = "~> 2.0"
-  region = "eu-west-1"
+  version             = "~> 2.0"
+  region              = "eu-west-1"
   allowed_account_ids = var.aws_allowed_accounts
 }
 

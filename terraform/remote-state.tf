@@ -5,7 +5,7 @@ locals {
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket_prefix = local.bucket_name
-  acl    = "private"
+  acl           = "private"
 
   versioning {
     enabled = true
@@ -25,8 +25,8 @@ resource "aws_s3_bucket" "terraform_state" {
 
 resource "aws_s3_bucket_policy" "terraform_state" {
   depends_on = [aws_s3_bucket.terraform_state]
-  bucket = aws_s3_bucket.terraform_state.id
-  policy = data.aws_iam_policy_document.prevent_unencrypted_uploads.json
+  bucket     = aws_s3_bucket.terraform_state.id
+  policy     = data.aws_iam_policy_document.prevent_unencrypted_uploads.json
 }
 
 data "aws_iam_policy_document" "prevent_unencrypted_uploads" {
