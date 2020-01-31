@@ -48,7 +48,7 @@ initialise:
   stage: initialise
   script:
     - terraform --version
-    - terraform init
+    - terraform init terraform/
 
 validate:
   stage: validate
