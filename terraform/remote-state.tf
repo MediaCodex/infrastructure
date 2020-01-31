@@ -1,6 +1,6 @@
 locals {
-  bucket_name = "mediacodex-terraform-state-" // this is suffixed with a random id
-  dynamo_name = "mediacodex-terraform-lock"
+  bucket_name = "terraform-state-" // this is suffixed with a random id
+  dynamo_name = "terraform-lock"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
