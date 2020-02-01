@@ -167,16 +167,13 @@ data "aws_iam_policy_document" "infrastructure_s3" {
   statement {
     sid = "AdminTable"
     actions = [
-      "s3:GetBucket*",
-      "s3:PutBucket*",
-      "s3:DeleteBucket*",
-      "s3:ListBucketVersions",
+      "s3:ListBucket*",
       "s3:CreateBucket",
-      "s3:ListBucket",
-      "s3:PutEncryptionConfiguration",
-      "s3:PutLifecycleConfiguration",
-      "s3:ListBucketMultipartUploads",
-      "s3:GetAccelerateConfiguration"
+      "s3:DeleteBucket*",
+      "s3:PutBucket*",
+      "s3:Get*Configuration",
+      "s3:Put*Configuration",
+      "s3:GetBucket*"
     ]
     resources = ["arn:aws:s3:::terraform-state*"]
   }
