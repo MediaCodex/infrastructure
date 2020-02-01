@@ -5,16 +5,25 @@ image:
     - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 variables:
-  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
   GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
   PLAN: plan.tfplan
   TF_IN_AUTOMATION: "true"
 
 .variables_prod: &variables_prod
   variables:
-    AWS_ACCESS_KEY_ID: $env:AWS_ACCESS_KEY_ID_prod
-    AWS_SECRET_ACCESS_KEY: $env:AWS_SECRET_ACCESS_KEY_prod
-    TF_VAR_aws_allowed_accounts: $env:AWS_ALLOWED_ACCOUNTS_prod
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_prod
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_prod
+    TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_prod
+    TF_STATE_BUCKET: $TF_STATE_BUCKET_prod
+    TF_VAR_domain: mediacodex.net
+
+.variables_dev: &variables_dev
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_dev
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_dev
+    TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_dev
+    TF_STATE_BUCKET: $TF_STATE_BUCKET_dev
+    TF_VAR_domain: mediacodex.dev
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -22,7 +31,6 @@ cache:
     - .terraform
 
 stages:
-  - initialise
   - validate
   - plan
   - apply
@@ -33,6 +41,8 @@ sonarcloud:
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
   cache:
     key: "${CI_JOB_NAME}"
     paths:
@@ -44,22 +54,35 @@ sonarcloud:
     - master
     - develop
 
-initialise:
-  stage: initialise
-  script:
-    - terraform --version
-    - terraform init terraform/
-
 validate:
   stage: validate
+  before_script:
+    - terraform init -backend=false terraform/
   script:
     - terraform validate terraform/
     - terraform fmt -check=true terraform/
   only:
     - branches
 
+deploy_dev:
+  <<: *variables_dev
+  stage: apply
+  before_script:
+    - terraform --version
+    - terraform init terraform/
+  script:
+    terraform apply -plan=$PLAN terraform/
+  environment:
+    name: development
+  when: manual
+  only:
+  - develop
+
 deploy_prod:
   <<: *variables_prod
+  before_script:
+    - terraform --version
+    - terraform init terraform/
   stage: apply
   script:
     terraform apply -plan=$PLAN terraform/
@@ -67,11 +90,9 @@ deploy_prod:
     name: production
   when: manual
   only:
-  - master
+  - develop
 
-merge_review_prod:
-  <<: *variables_prod
-  stage: plan
+.script_review: &script_review
   script:
     - terraform plan -out=$PLAN terraform/
     - echo \`\`\`diff > plan.txt
@@ -85,6 +106,27 @@ merge_review_prod:
       curl -X POST -g -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}"
       --data-urlencode "body=${MESSAGE}"
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/discussions"
+
+plan_dev:
+  <<: *variables_prod
+  <<: *scripts_review
+  stage: plan
+  before_script:
+    - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
+  artifacts:
+    name: plan
+    paths:
+      - $PLAN
+  only:
+    - merge_requests
+    - develop
+
+plan_prod:
+  <<: *variables_prod
+  <<: *scripts_review
+  stage: plan
+  before_script:
+    - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
   artifacts:
     name: plan
     paths:
