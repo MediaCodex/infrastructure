@@ -2,15 +2,15 @@
  * Deployment User
  */
 resource "aws_iam_user" "deploy_infrastructure" {
-  name               = "deploy-infrastructure"
+  name = "deploy-infrastructure"
   path = "/deployment/"
-  tags               = var.default_tags
+  tags = var.default_tags
 }
 module "tfstate_infrastructure" {
   source = "../modules/policy-remotestate"
-  user = aws_iam_user.deploy_infrastructure.id
+  user   = aws_iam_user.deploy_infrastructure.id
   object = "infrastructure.tfstate"
-  table = aws_dynamodb_table.terraform_lock.arn
+  table  = aws_dynamodb_table.terraform_lock.arn
   bucket = aws_s3_bucket.terraform_state.arn
 }
 
@@ -18,8 +18,8 @@ module "tfstate_infrastructure" {
  * Deployment Role
  */
 resource "aws_iam_role" "deploy_infrastructure" {
-  name = "deploy-infrastructure"
-  description = "Deployment role for 'Infrastructure' service"
+  name               = "deploy-infrastructure"
+  description        = "Deployment role for 'Infrastructure' service"
   assume_role_policy = data.aws_iam_policy_document.infrastructure_assume_role.json
 }
 data "aws_iam_policy_document" "infrastructure_assume_role" {
@@ -37,11 +37,11 @@ data "aws_iam_policy_document" "infrastructure_assume_role" {
  * AWS Policies
  */
 resource "aws_iam_role_policy_attachment" "infrastructure_ses" {
-  role   = aws_iam_role.deploy_infrastructure.id
+  role       = aws_iam_role.deploy_infrastructure.id
   policy_arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
 }
 resource "aws_iam_role_policy_attachment" "infrastructure_cognito" {
-  role   = aws_iam_role.deploy_infrastructure.id
+  role       = aws_iam_role.deploy_infrastructure.id
   policy_arn = "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
 }
 

@@ -17,11 +17,11 @@ resource "aws_cognito_user_pool" "default" {
   // https://docs.microsoft.com/en-us/office365/admin/misc/password-policy-recommendations
   // https://pages.nist.gov/800-63-3/sp800-63b.html
   password_policy {
-    minimum_length    = 8
-    require_lowercase = true
-    require_uppercase = true
-    require_numbers   = true
-    require_symbols   = true
+    minimum_length                   = 8
+    require_lowercase                = true
+    require_uppercase                = true
+    require_numbers                  = true
+    require_symbols                  = true
     temporary_password_validity_days = 7
   }
 
