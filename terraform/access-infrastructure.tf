@@ -1,0 +1,191 @@
+/*
+ * Deployment User
+ */
+resource "aws_iam_user" "deploy_infrastructure" {
+  name               = "deploy-infrastructure"
+  path = "/deployment/"
+  tags               = var.default_tags
+}
+module "tfstate_infrastructure" {
+  source = "../modules/policy-remotestate"
+  user = aws_iam_user.deploy_infrastructure.id
+  object = "infrastructure.tfstate"
+  table = aws_dynamodb_table.terraform_lock.arn
+  bucket = aws_s3_bucket.terraform_state.arn
+}
+
+/*
+ * Deployment Role
+ */
+resource "aws_iam_role" "deploy_infrastructure" {
+  name = "deploy-infrastructure"
+  description = "Deployment role for 'Infrastructure' service"
+  assume_role_policy = data.aws_iam_policy_document.infrastructure_assume_role.json
+}
+data "aws_iam_policy_document" "infrastructure_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_iam_user.deploy_infrastructure.arn]
+    }
+  }
+}
+
+/*
+ * AWS Policies
+ */
+resource "aws_iam_role_policy_attachment" "infrastructure_ses" {
+  role   = aws_iam_role.deploy_infrastructure.id
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+}
+resource "aws_iam_role_policy_attachment" "infrastructure_cognito" {
+  role   = aws_iam_role.deploy_infrastructure.id
+  policy_arn = "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
+}
+
+/*
+ * IAM Policy
+ */
+resource "aws_iam_role_policy" "infrastructure_iam" {
+  name   = "ManageDeployIam"
+  role   = aws_iam_role.deploy_infrastructure.id
+  policy = data.aws_iam_policy_document.infrastructure_iam.json
+}
+data "aws_iam_policy_document" "infrastructure_iam" {
+  statement {
+    sid = "IamModifyUsers"
+    actions = [
+      "iam:UpdateUser",
+      "iam:PutUserPermissionsBoundary",
+      "iam:AttachUserPolicy",
+      "iam:DeleteUserPolicy",
+      "iam:DeleteUser",
+      "iam:DeleteUserPermissionsBoundary",
+      "iam:ListUserPolicies",
+      "iam:CreateUser",
+      "iam:TagUser",
+      "iam:UntagUser",
+      "iam:GetUserPolicy",
+      "iam:PutUserPolicy",
+      "iam:GetUser",
+      "iam:DetachUserPolicy",
+      "iam:ListUserTags"
+    ]
+    resources = ["arn:aws:iam::*:user/deployment/*"]
+    condition {
+      test     = "ArnNotEquals"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:iam::*:user/deployment/deploy-infrastructure"]
+    }
+  }
+
+  statement {
+    sid = "IamModifyRoles"
+    actions = [
+      "iam:GetRole",
+      "iam:UntagRole",
+      "iam:PutRolePermissionsBoundary",
+      "iam:TagRole",
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:UpdateRoleDescription",
+      "iam:AttachRolePolicy",
+      "iam:DeleteRolePermissionsBoundary",
+      "iam:PutRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:DeleteRolePolicy",
+      "iam:ListAttachedRolePolicies",
+      "iam:UpdateRole",
+      "iam:ListRolePolicies",
+      "iam:GetRolePolicy"
+    ]
+    resources = ["arn:aws:iam::*:role/deploy-*"]
+    condition {
+      test     = "ArnNotEquals"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:iam::*:role/deploy-infrastructure"]
+    }
+  }
+
+  statement {
+    sid = "IamList"
+    actions = [
+      "iam:ListUsers",
+      "iam:ListRoles"
+    ]
+    resources = ["*"]
+  }
+}
+
+/*
+ * DynamoDB Policy
+ */
+resource "aws_iam_role_policy" "infrastructure_dynamodb" {
+  name   = "DynamoDB"
+  role   = aws_iam_role.deploy_infrastructure.id
+  policy = data.aws_iam_policy_document.infrastructure_dynamodb.json
+}
+data "aws_iam_policy_document" "infrastructure_dynamodb" {
+  statement {
+    sid = "AdminTable"
+    actions = [
+      "dynamodb:Describe*",
+      "dynamodb:CreateTable",
+      "dynamodb:UpdateTimeToLive",
+      "dynamodb:UpdateTable",
+      "dynamodb:TagResource",
+      "dynamodb:UntagResource",
+      "dynamodb:DeleteTable",
+      "dynamodb:ListTagsOfResource",
+      "dynamodb:TagResource",
+      "dynamodb:UnTagResource"
+    ]
+    resources = ["arn:aws:dynamodb:*:*:table/terraform-lock"]
+  }
+
+  statement {
+    sid = "ListTables"
+    actions = [
+      "dynamodb:ListTables",
+      "dynamodb:DescribeLimits"
+    ]
+    resources = ["*"]
+  }
+}
+
+/*
+ * S3 Policy
+ */
+resource "aws_iam_role_policy" "infrastructure_s3" {
+  name   = "S3"
+  role   = aws_iam_role.deploy_infrastructure.id
+  policy = data.aws_iam_policy_document.infrastructure_s3.json
+}
+data "aws_iam_policy_document" "infrastructure_s3" {
+  statement {
+    sid = "AdminTable"
+    actions = [
+      "s3:GetBucket*",
+      "s3:PutBucket*",
+      "s3:DeleteBucket*",
+      "s3:ListBucketVersions",
+      "s3:CreateBucket",
+      "s3:ListBucket",
+      "s3:PutEncryptionConfiguration",
+      "s3:PutLifecycleConfiguration",
+      "s3:ListBucketMultipartUploads",
+      "s3:GetAccelerateConfiguration"
+    ]
+    resources = ["arn:aws:s3:::terraform-state*"]
+  }
+
+  statement {
+    sid = "ListBucket"
+    actions = [
+      "s3:HeadBucket"
+    ]
+    resources = ["*"]
+  }
+}

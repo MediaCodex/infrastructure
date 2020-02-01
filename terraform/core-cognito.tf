@@ -22,6 +22,7 @@ resource "aws_cognito_user_pool" "default" {
     require_uppercase = true
     require_numbers   = true
     require_symbols   = true
+    temporary_password_validity_days = 7
   }
 
   tags = var.default_tags

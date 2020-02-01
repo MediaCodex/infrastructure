@@ -22,6 +22,9 @@ TF_STATE_BUCKET='some-bucket-name'
 export TF_CLI_ARGS_init="-backend-config=\"bucket=${TF_STATE_BUCKET}\""
 ```
 
+Alternatively you can just add it to the init CLI, like so `terraform init -backend-config="bucket=some-bucket-name" terraform/`
+
+
 | Name                 | Required | Description                                                                                | Default Value    |
 | -------------------- | -------- | ------------------------------------------------------------------------------------------ | ---------------- |
 | CLOUDFLARE_API_TOKEN | Yes      | [Cloudflare Authentication](https://www.terraform.io/docs/providers/cloudflare/index.html) |                  |

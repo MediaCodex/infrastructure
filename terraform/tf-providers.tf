@@ -5,19 +5,22 @@
  * See README.md
  */
 terraform {
-  backend "s3" {
-    bucket         = ""
-    key            = "infrastructure.tfstate"
-    region         = "eu-west-1"
-    encrypt        = true
-    dynamodb_table = "mediacodex-terraform-lock"
-  }
+  # backend "s3" {
+  #   key            = "infrastructure.tfstate"
+  #   region         = "eu-central-1"
+  #   encrypt        = true
+  #   dynamodb_table = "terraform-lock"
+  #   bucket = "terraform-state-20200201193821424400000001"
+  # }
 }
 
 provider "aws" {
   version             = "~> 2.0"
-  region              = "eu-west-1"
+  region              = "eu-central-1"
   allowed_account_ids = var.aws_allowed_accounts
+  assume_role {
+    // TODO
+  }
 }
 
 provider "cloudflare" {

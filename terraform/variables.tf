@@ -2,7 +2,7 @@ variable "default_tags" {
   type        = map(string)
   description = "Common resource tags for all resources"
   default = {
-    Service     = "Infrastructure"
+    Service = "Infrastructure"
   }
   # TODO: add stage
 }
@@ -14,6 +14,6 @@ variable "domain" {
 }
 
 variable "aws_allowed_accounts" {
-  type = list(string)
+  type    = list(string)
   default = []
 }
