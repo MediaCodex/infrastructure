@@ -5,13 +5,12 @@
  * See README.md
  */
 terraform {
-  # backend "s3" {
-  #   key            = "infrastructure.tfstate"
-  #   region         = "eu-central-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-lock"
-  #   bucket = "terraform-state-20200201193821424400000001"
-  # }
+  backend "s3" {
+    key            = "infrastructure.tfstate"
+    region         = "eu-central-1"
+    encrypt        = true
+    dynamodb_table = "terraform-lock"
+  }
 }
 
 provider "aws" {
@@ -19,7 +18,7 @@ provider "aws" {
   region              = "eu-central-1"
   allowed_account_ids = var.aws_allowed_accounts
   assume_role {
-    // TODO
+    role_arn = var.aws_assume_role
   }
 }
 
