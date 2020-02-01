@@ -14,6 +14,7 @@ variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_prod
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_prod
     TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_prod
+    TF_VAR_aws_assume_role: $AWS_ASSUME_ROLE_prod
     TF_STATE_BUCKET: $TF_STATE_BUCKET_prod
     TF_VAR_domain: mediacodex.net
 
@@ -22,6 +23,7 @@ variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_dev
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_dev
     TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_dev
+    TF_VAR_aws_assume_role: $AWS_ASSUME_ROLE_dev
     TF_STATE_BUCKET: $TF_STATE_BUCKET_dev
     TF_VAR_domain: mediacodex.dev
 
