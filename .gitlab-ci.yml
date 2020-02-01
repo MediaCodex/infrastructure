@@ -109,7 +109,7 @@ deploy_prod:
 
 plan_dev:
   <<: *variables_prod
-  <<: *scripts_review
+  <<: *script_review
   stage: plan
   before_script:
     - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
@@ -123,7 +123,7 @@ plan_dev:
 
 plan_prod:
   <<: *variables_prod
-  <<: *scripts_review
+  <<: *script_review
   stage: plan
   before_script:
     - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
