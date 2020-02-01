@@ -90,7 +90,7 @@ deploy_prod:
     name: production
   when: manual
   only:
-  - develop
+  - master
 
 .script_review: &script_review
   script:
