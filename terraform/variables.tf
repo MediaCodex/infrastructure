@@ -20,4 +20,5 @@ variable "aws_allowed_accounts" {
 
 variable "aws_assume_role" {
   type = string
+  default = "INVALID_ARN"
 }
