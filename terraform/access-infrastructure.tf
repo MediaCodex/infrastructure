@@ -90,7 +90,7 @@ data "aws_iam_policy_document" "infrastructure_iam" {
   }
 
   statement {
-    Sid = "ReadOwnState"
+    sid = "ReadOwnState"
     actions = [
       "iam:GetRole*",
       "iam:ListRole*",
