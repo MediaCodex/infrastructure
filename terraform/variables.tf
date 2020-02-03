@@ -17,3 +17,8 @@ variable "aws_allowed_accounts" {
   type    = list(string)
   default = []
 }
+
+variable "aws_assume_role" {
+  type    = string
+  default = "INVALID_ARN"
+}

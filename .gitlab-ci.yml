@@ -14,6 +14,7 @@ variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_prod
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_prod
     TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_prod
+    TF_VAR_aws_assume_role: $AWS_ASSUME_ROLE_prod
     TF_STATE_BUCKET: $TF_STATE_BUCKET_prod
     TF_VAR_domain: mediacodex.net
 
@@ -22,6 +23,7 @@ variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_dev
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_dev
     TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_dev
+    TF_VAR_aws_assume_role: $AWS_ASSUME_ROLE_dev
     TF_STATE_BUCKET: $TF_STATE_BUCKET_dev
     TF_VAR_domain: mediacodex.dev
 
@@ -64,6 +66,48 @@ validate:
   only:
     - branches
 
+.script_review: &script_review
+  script:
+    - apk add curl
+    - terraform plan -out=$PLAN terraform/
+    - echo \`\`\`diff > plan.txt
+    - (cd terraform && cp -r ../.terraform/ .terraform/  && terraform show -no-color ../${PLAN}) | tee -a ../plan.txt
+    - echo \`\`\` >> plan.txt
+    - sed -i -e 's/  +/+/g' plan.txt
+    - sed -i -e 's/  ~/~/g' plan.txt
+    - sed -i -e 's/  -/-/g' plan.txt
+    - MESSAGE=$(cat plan.txt)
+    - >-
+      curl -X POST -g -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}"
+      --data-urlencode "body=${MESSAGE}"
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/discussions"
+
+plan_dev:
+  <<: *variables_dev
+  <<: *script_review
+  stage: plan
+  before_script:
+    - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
+  artifacts:
+    name: plan
+    paths:
+      - $PLAN
+  only:
+    - merge_requests
+
+plan_prod:
+  <<: *variables_prod
+  <<: *script_review
+  stage: plan
+  before_script:
+    - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
+  artifacts:
+    name: plan
+    paths:
+      - $PLAN
+  only:
+    - merge_requests
+
 deploy_dev:
   <<: *variables_dev
   stage: apply
@@ -75,8 +119,10 @@ deploy_dev:
   environment:
     name: development
   when: manual
+  dependencies:
+    - plan_dev
   only:
-  - develop
+    - develop
 
 deploy_prod:
   <<: *variables_prod
@@ -89,48 +135,7 @@ deploy_prod:
   environment:
     name: production
   when: manual
+  dependencies:
+    - plan_prod
   only:
-  - develop
-
-.script_review: &script_review
-  script:
-    - terraform plan -out=$PLAN terraform/
-    - echo \`\`\`diff > plan.txt
-    - terraform show -no-color ${PLAN} | tee -a plan.txt
-    - echo \`\`\` >> plan.txt
-    - sed -i -e 's/  +/+/g' plan.txt
-    - sed -i -e 's/  ~/~/g' plan.txt
-    - sed -i -e 's/  -/-/g' plan.txt
-    - MESSAGE=$(cat plan.txt)
-    - >-
-      curl -X POST -g -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}"
-      --data-urlencode "body=${MESSAGE}"
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/discussions"
-
-plan_dev:
-  <<: *variables_prod
-  <<: *scripts_review
-  stage: plan
-  before_script:
-    - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
-  artifacts:
-    name: plan
-    paths:
-      - $PLAN
-  only:
-    - merge_requests
-    - develop
-
-plan_prod:
-  <<: *variables_prod
-  <<: *scripts_review
-  stage: plan
-  before_script:
-    - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
-  artifacts:
-    name: plan
-    paths:
-      - $PLAN
-  only:
-    - merge_requests
     - master
