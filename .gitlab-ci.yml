@@ -66,34 +66,6 @@ validate:
   only:
     - branches
 
-deploy_dev:
-  <<: *variables_dev
-  stage: apply
-  before_script:
-    - terraform --version
-    - terraform init terraform/
-  script:
-    terraform apply -plan=$PLAN terraform/
-  environment:
-    name: development
-  when: manual
-  only:
-  - develop
-
-deploy_prod:
-  <<: *variables_prod
-  before_script:
-    - terraform --version
-    - terraform init terraform/
-  stage: apply
-  script:
-    terraform apply -plan=$PLAN terraform/
-  environment:
-    name: production
-  when: manual
-  only:
-  - master
-
 .script_review: &script_review
   script:
     - apk add curl
@@ -122,7 +94,6 @@ plan_dev:
       - $PLAN
   only:
     - merge_requests
-    - develop
 
 plan_prod:
   <<: *variables_prod
@@ -136,4 +107,35 @@ plan_prod:
       - $PLAN
   only:
     - merge_requests
+
+deploy_dev:
+  <<: *variables_dev
+  stage: apply
+  before_script:
+    - terraform --version
+    - terraform init terraform/
+  script:
+    terraform apply -plan=$PLAN terraform/
+  environment:
+    name: development
+  when: manual
+  dependencies:
+    - plan_dev
+  only:
+    - develop
+
+deploy_prod:
+  <<: *variables_prod
+  before_script:
+    - terraform --version
+    - terraform init terraform/
+  stage: apply
+  script:
+    terraform apply -plan=$PLAN terraform/
+  environment:
+    name: production
+  when: manual
+  dependencies:
+    - plan_prod
+  only:
     - master
