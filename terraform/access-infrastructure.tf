@@ -55,22 +55,12 @@ resource "aws_iam_role_policy" "infrastructure_iam" {
 }
 data "aws_iam_policy_document" "infrastructure_iam" {
   statement {
-    sid = "IamModifyUsers"
+    sid = "ModifyUsers"
     actions = [
-      "iam:UpdateUser",
-      "iam:PutUserPermissionsBoundary",
-      "iam:AttachUserPolicy",
-      "iam:DeleteUserPolicy",
-      "iam:DeleteUser",
-      "iam:DeleteUserPermissionsBoundary",
+      "iam:*User",
+      "iam:*UserPolicy",
+      "iam:*UserPermissionsBoundary",
       "iam:ListUserPolicies",
-      "iam:CreateUser",
-      "iam:TagUser",
-      "iam:UntagUser",
-      "iam:GetUserPolicy",
-      "iam:PutUserPolicy",
-      "iam:GetUser",
-      "iam:DetachUserPolicy",
       "iam:ListUserTags"
     ]
     resources = ["arn:aws:iam::*:user/deployment/*"]
@@ -82,24 +72,14 @@ data "aws_iam_policy_document" "infrastructure_iam" {
   }
 
   statement {
-    sid = "IamModifyRoles"
+    sid = "ModifyRoles"
     actions = [
-      "iam:GetRole",
-      "iam:UntagRole",
-      "iam:PutRolePermissionsBoundary",
-      "iam:TagRole",
-      "iam:CreateRole",
-      "iam:DeleteRole",
+      "iam:*Role",
+      "iam:*RolePolicy",
+      "iam:*RolePermissionsBoundary",
       "iam:UpdateRoleDescription",
-      "iam:AttachRolePolicy",
-      "iam:DeleteRolePermissionsBoundary",
-      "iam:PutRolePolicy",
-      "iam:DetachRolePolicy",
-      "iam:DeleteRolePolicy",
       "iam:ListAttachedRolePolicies",
-      "iam:UpdateRole",
       "iam:ListRolePolicies",
-      "iam:GetRolePolicy"
     ]
     resources = ["arn:aws:iam::*:role/deploy-*"]
     condition {
@@ -110,7 +90,21 @@ data "aws_iam_policy_document" "infrastructure_iam" {
   }
 
   statement {
-    sid = "IamList"
+    Sid = "ReadOwnState"
+    actions = [
+      "iam:GetRole*",
+      "iam:ListRole*",
+      "iam:GetUser*",
+      "iam:ListUser*"
+    ]
+    resources = [
+      "arn:aws:iam::*:user/deployment/deploy-infrastructure",
+      "arn:aws:iam::*:role/deploy-infrastructure"
+    ]
+  }
+
+  statement {
+    sid = "ListAll"
     actions = [
       "iam:ListUsers",
       "iam:ListRoles"
