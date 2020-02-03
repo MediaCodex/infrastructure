@@ -96,6 +96,7 @@ deploy_prod:
 
 .script_review: &script_review
   script:
+    - apk add curl
     - terraform plan -out=$PLAN terraform/
     - echo \`\`\`diff > plan.txt
     - (cd terraform && cp -r ../.terraform/ .terraform/  && terraform show -no-color ../${PLAN}) | tee -a ../plan.txt
