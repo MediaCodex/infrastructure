@@ -98,7 +98,7 @@ deploy_prod:
   script:
     - terraform plan -out=$PLAN terraform/
     - echo \`\`\`diff > plan.txt
-    - terraform show -no-color -config=terraform/ ${PLAN} | tee -a plan.txt
+    - (cd terraform && cp -r ../.terraform/ .terraform/  && terraform show -no-color ../${PLAN}) | tee -a ../plan.txt
     - echo \`\`\` >> plan.txt
     - sed -i -e 's/  +/+/g' plan.txt
     - sed -i -e 's/  ~/~/g' plan.txt
