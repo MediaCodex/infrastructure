@@ -1,0 +1,117 @@
+image:
+  name: hashicorp/terraform:light
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+variables:
+  PLAN: plan.tfplan
+  TF_IN_AUTOMATION: "true"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .terraform
+
+stages:
+  - tf-validate
+  - tf-plan
+  - tf-apply
+
+.variables_prod: &variables_prod
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_prod
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_prod
+    TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_prod
+    TF_VAR_aws_assume_role: $AWS_ASSUME_ROLE_prod
+    TF_STATE_BUCKET: $TF_STATE_BUCKET_prod
+    TF_VAR_domain: mediacodex.net
+
+.variables_dev: &variables_dev
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_dev
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_dev
+    TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_dev
+    TF_VAR_aws_assume_role: $AWS_ASSUME_ROLE_dev
+    TF_STATE_BUCKET: $TF_STATE_BUCKET_dev
+    TF_VAR_domain: mediacodex.dev
+
+validate:
+  stage: tf-validate
+  before_script:
+    - terraform init -backend=false terraform/
+  script:
+    - terraform validate terraform/
+    - terraform fmt -check=true terraform/
+  only:
+    - branches
+
+.plan_review:
+  script:
+    - apk add curl
+    - terraform plan -out=$PLAN terraform/
+    - echo \`\`\`diff > plan.txt
+    - (cd terraform && cp -r ../.terraform/ .terraform/  && terraform show -no-color ../${PLAN}) | tee -a ../plan.txt
+    - echo \`\`\` >> plan.txt
+    - sed -i -e 's/  +/+/g' plan.txt
+    - sed -i -e 's/  ~/~/g' plan.txt
+    - sed -i -e 's/  -/-/g' plan.txt
+    - MESSAGE=$(cat plan.txt)
+    - >-
+      curl -X POST -g -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}"
+      --data-urlencode "body=${MESSAGE}"
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/discussions"
+
+.plan:
+  stage: tf-plan
+  before_script:
+    - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
+  artifacts:
+    name: plan
+    paths:
+      - $PLAN
+  only:
+    - merge_requests
+
+plan_dev:
+  <<: *variables_dev
+  extends:
+    - .plan
+    - .plan_review
+
+plan_prod:
+  <<: *variables_prod
+  extends:
+    - .plan
+    - .plan_review
+
+.deploy:
+  stage: tf-apply
+  before_script:
+    - terraform --version
+    - terraform init terraform/
+  script:
+    terraform apply -plan=$PLAN terraform/
+  when: manual
+
+deploy_dev:
+  <<: *variables_dev
+  extends:
+    - .deploy
+  environment:
+    name: development
+  dependencies:
+    - plan_dev
+  only:
+    - develop
+
+deploy_prod:
+  <<: *variables_prod
+  extends: 
+    - .deploy
+  environment:
+    name: production
+  dependencies:
+    - plan_prod
+  only:
+    - master
