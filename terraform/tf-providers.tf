@@ -1,9 +1,3 @@
-/**
- * I don't particuarly like it, but apparently the only realistic way to dynamically
- * set the backend bucket name is by using the `TF_CLI_ARGS_init` env var.
- *
- * See README.md
- */
 terraform {
   backend "s3" {
     key            = "infrastructure.tfstate"
