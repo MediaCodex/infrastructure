@@ -36,16 +36,9 @@ stages:
     TF_STATE_BUCKET: $TF_STATE_BUCKET_dev
     TF_VAR_domain: mediacodex.dev
 
-validate:
-  stage: tf-validate
-  before_script:
-    - terraform init -backend=false terraform/
-  script:
-    - terraform validate terraform/
-    - terraform fmt -check=true terraform/
-  only:
-    - branches
-
+###
+# Shared
+###
 .plan_review:
   script:
     - apk add curl
@@ -73,18 +66,6 @@ validate:
   only:
     - merge_requests
 
-plan_dev:
-  <<: *variables_dev
-  extends:
-    - .plan
-    - .plan_review
-
-plan_prod:
-  <<: *variables_prod
-  extends:
-    - .plan
-    - .plan_review
-
 .deploy:
   stage: tf-apply
   before_script:
@@ -92,7 +73,28 @@ plan_prod:
     - terraform init terraform/
   script:
     terraform apply -plan=$PLAN terraform/
-  when: manual
+
+###
+# pre-deploy
+###
+validate:
+  stage: tf-validate
+  before_script:
+    - terraform init -backend=false terraform/
+  script:
+    - terraform validate terraform/
+    - terraform fmt -check=true terraform/
+  only:
+    - merge_requests
+
+###
+# Dev
+###
+plan_dev:
+  <<: *variables_dev
+  extends:
+    - .plan
+    - .plan_review
 
 deploy_dev:
   <<: *variables_dev
@@ -103,7 +105,16 @@ deploy_dev:
   dependencies:
     - plan_dev
   only:
-    - develop
+    - master
+
+###
+# Prod
+###
+plan_prod:
+  <<: *variables_prod
+  extends:
+    - .plan
+    - .plan_review
 
 deploy_prod:
   <<: *variables_prod
@@ -115,3 +126,4 @@ deploy_prod:
     - plan_prod
   only:
     - master
+  when: manual
