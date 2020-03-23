@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "terraform-state-mediacodex"
-  acl           = "private"
+  acl    = "private"
 
   versioning {
     enabled = true

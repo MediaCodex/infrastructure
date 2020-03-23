@@ -23,7 +23,7 @@ variable "default_tags" {
 variable "domains" {
   type = map
   default = {
-    dev = "mediacodex.dev"
+    dev  = "mediacodex.dev"
     prod = "mediacodex.net"
   }
 }

@@ -12,12 +12,12 @@ variable "deploy_aws_roles" {
   type = map(string)
   default = {
     root = ""
-    dev = "arn:aws:iam::949257948165:role/deploy-infrastructure"
+    dev  = "arn:aws:iam::949257948165:role/deploy-infrastructure"
   }
 }
 
 variable "deploy_aws_accounts" {
-  type    = map(list(string))
+  type = map(list(string))
   default = {
     root = ["939514526661"]
   }
