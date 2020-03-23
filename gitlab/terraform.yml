@@ -8,6 +8,7 @@ variables:
   PLAN: plan.tfplan
   PATH: terraform/
   TF_IN_AUTOMATION: "true"
+  PROD_ONLY: 'false'
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -82,7 +83,6 @@ validate:
   script:
     - terraform validate $PATH
     - terraform fmt -check=true $PATH
-  only:
 
 ###
 # Dev
@@ -94,6 +94,9 @@ plan_dev:
     - .plan_review
   environment:
     name: development
+  except:
+    variables:
+      - $PROD_ONLY == 'true'
 
 deploy_dev:
   <<: *variables_dev
@@ -105,6 +108,9 @@ deploy_dev:
     - plan_dev
   only:
     - master
+  except:
+    variables:
+      - $PROD_ONLY == 'true'
 
 ###
 # Prod
