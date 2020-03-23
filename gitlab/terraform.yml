@@ -6,6 +6,7 @@ image:
 
 variables:
   PLAN: plan.tfplan
+  PATH: terraform/
   TF_IN_AUTOMATION: "true"
 
 cache:
@@ -14,6 +15,7 @@ cache:
     - .terraform
 
 stages:
+  - tf-init
   - tf-validate
   - tf-plan
   - tf-apply
@@ -22,19 +24,11 @@ stages:
   variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_prod
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_prod
-    TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_prod
-    TF_VAR_aws_assume_role: $AWS_ASSUME_ROLE_prod
-    TF_STATE_BUCKET: $TF_STATE_BUCKET_prod
-    TF_VAR_domain: mediacodex.net
 
 .variables_dev: &variables_dev
   variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_dev
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_dev
-    TF_VAR_aws_allowed_accounts: $AWS_ALLOWED_ACCOUNTS_dev
-    TF_VAR_aws_assume_role: $AWS_ASSUME_ROLE_dev
-    TF_STATE_BUCKET: $TF_STATE_BUCKET_dev
-    TF_VAR_domain: mediacodex.dev
 
 ###
 # Shared
@@ -42,7 +36,9 @@ stages:
 .plan_review:
   script:
     - apk add curl
-    - terraform plan -out=$PLAN terraform/
+    - terraform workspace select $CI_ENVIRONMENT_NAME $PATH
+    - terraform plan -out=$PLAN $PATH
+    - echo "# Terraform planned changes ($(terraform workspace show $PATH))\n" > plan.txt
     - echo \`\`\`diff > plan.txt
     - (cd terraform && cp -r ../.terraform/ .terraform/  && terraform show -no-color ../${PLAN}) | tee -a ../plan.txt
     - echo \`\`\` >> plan.txt
@@ -57,8 +53,9 @@ stages:
 
 .plan:
   stage: tf-plan
-  before_script:
-    - terraform init -backend-config="bucket=${TF_STATE_BUCKET}" terraform/
+  script: 
+    - terraform workspace select $CI_ENVIRONMENT_NAME $PATH
+    - terrrform plan -out=$PLAN $PATH
   artifacts:
     name: plan
     paths:
@@ -68,24 +65,24 @@ stages:
 
 .deploy:
   stage: tf-apply
-  before_script:
-    - terraform --version
-    - terraform init terraform/
   script:
-    terraform apply -plan=$PLAN terraform/
+    - terraform workspace select $CI_ENVIRONMENT_NAME $PATH
+    - terraform apply -plan=$PLAN $PATH
 
 ###
 # pre-deploy
 ###
+init:
+  stage: tf-init
+  script:
+    - terraform --version
+    - terraform init -backend=false $PATH
 validate:
   stage: tf-validate
-  before_script:
-    - terraform init -backend=false terraform/
   script:
-    - terraform validate terraform/
-    - terraform fmt -check=true terraform/
+    - terraform validate $PATH
+    - terraform fmt -check=true $PATH
   only:
-    - merge_requests
 
 ###
 # Dev
@@ -95,6 +92,8 @@ plan_dev:
   extends:
     - .plan
     - .plan_review
+  environment:
+    name: development
 
 deploy_dev:
   <<: *variables_dev
@@ -115,6 +114,8 @@ plan_prod:
   extends:
     - .plan
     - .plan_review
+  environment:
+    name: production
 
 deploy_prod:
   <<: *variables_prod
