@@ -5,8 +5,8 @@ image:
     - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 variables:
-  PLAN: plan.tfplan
-  PATH: terraform/
+  TF_PLAN: plan.tfplan
+  TF_PATH: terraform/
   TF_IN_AUTOMATION: "true"
   PROD_ONLY: 'false'
 
@@ -37,9 +37,9 @@ stages:
 .plan_review:
   script:
     - apk add curl
-    - terraform workspace select $CI_ENVIRONMENT_NAME $PATH
-    - terraform plan -out=$PLAN $PATH
-    - echo "# Terraform planned changes ($(terraform workspace show $PATH))\n" > plan.txt
+    - terraform workspace select $CI_ENVIRONMENT_NAME $TF_PATH
+    - terraform plan -out=$TF_PLAN $TF_PATH
+    - echo "# Terraform planned changes ($(terraform workspace show $TF_PATH))\n" > plan.txt
     - echo \`\`\`diff > plan.txt
     - (cd terraform && cp -r ../.terraform/ .terraform/  && terraform show -no-color ../${PLAN}) | tee -a ../plan.txt
     - echo \`\`\` >> plan.txt
@@ -55,20 +55,20 @@ stages:
 .plan:
   stage: tf-plan
   script: 
-    - terraform workspace select $CI_ENVIRONMENT_NAME $PATH
-    - terrrform plan -out=$PLAN $PATH
+    - terraform workspace select $CI_ENVIRONMENT_NAME $TF_PATH
+    - terrrform plan -out=$TF_PLAN $TF_PATH
   artifacts:
     name: plan
     paths:
-      - $PLAN
+      - $TF_PLAN
   only:
     - merge_requests
 
 .deploy:
   stage: tf-apply
   script:
-    - terraform workspace select $CI_ENVIRONMENT_NAME $PATH
-    - terraform apply -plan=$PLAN $PATH
+    - terraform workspace select $CI_ENVIRONMENT_NAME $TF_PATH
+    - terraform apply -plan=$TF_PLAN $TF_PATH
 
 ###
 # pre-deploy
@@ -77,12 +77,12 @@ init:
   stage: tf-init
   script:
     - terraform --version
-    - terraform init -backend=false $PATH
+    - terraform init -backend=false $TF_PATH
 validate:
   stage: tf-validate
   script:
-    - terraform validate $PATH
-    - terraform fmt -check=true $PATH
+    - terraform validate $TF_PATH
+    - terraform fmt -check=true $TF_PATH
 
 ###
 # Dev
