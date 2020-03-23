@@ -1,10 +1,5 @@
-locals {
-  bucket_name = "terraform-state-" // this is suffixed with a random id
-  dynamo_name = "terraform-lock"
-}
-
 resource "aws_s3_bucket" "terraform_state" {
-  bucket_prefix = local.bucket_name
+  bucket = "terraform-state-mediacodex"
   acl           = "private"
 
   versioning {
@@ -96,7 +91,7 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 }
 
 resource "aws_dynamodb_table" "terraform_lock" {
-  name           = local.dynamo_name
+  name           = "terraform-state-lock"
   read_capacity  = 5
   write_capacity = 5
 

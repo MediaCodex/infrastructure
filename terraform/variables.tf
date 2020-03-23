@@ -1,3 +1,16 @@
+locals {
+  environment = "${lookup(var.environments, terraform.workspace, "dev")}"
+}
+
+variable "environments" {
+  type = map(string)
+  default = {
+    root = "root"
+    dev  = "dev"
+    prod = "prod"
+  }
+}
+
 variable "default_tags" {
   type        = map(string)
   description = "Common resource tags for all resources"
@@ -7,18 +20,10 @@ variable "default_tags" {
   # TODO: add stage
 }
 
-variable "domain" {
-  type        = string
-  description = "Domain Name"
-  default     = "mediacodex.net"
-}
-
-variable "aws_allowed_accounts" {
-  type    = list(string)
-  default = []
-}
-
-variable "aws_assume_role" {
-  type    = string
-  default = "INVALID_ARN"
+variable "domains" {
+  type = map
+  default = {
+    dev = "mediacodex.dev"
+    prod = "mediacodex.net"
+  }
 }
