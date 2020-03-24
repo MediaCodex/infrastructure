@@ -37,6 +37,7 @@ stages:
 .plan_review:
   script:
     - apk add curl
+    - terraform init $TF_PATH
     - terraform workspace select $CI_ENVIRONMENT_NAME $TF_PATH
     - terraform plan -out=$TF_PLAN $TF_PATH
     - echo "# Terraform planned changes ($(terraform workspace show $TF_PATH))\n" > plan.txt
@@ -54,7 +55,8 @@ stages:
 
 .plan:
   stage: plan
-  script: 
+  script:
+    - terraform init $TF_PATH
     - terraform workspace select $CI_ENVIRONMENT_NAME $TF_PATH
     - terrrform plan -out=$TF_PLAN $TF_PATH
   artifacts:
@@ -67,20 +69,17 @@ stages:
 .deploy:
   stage: deploy
   script:
+    - terraform init $TF_PATH
     - terraform workspace select $CI_ENVIRONMENT_NAME $TF_PATH
     - terraform apply -plan=$TF_PLAN $TF_PATH
 
 ###
 # pre-deploy
 ###
-init_terraform:
-  stage: init
-  script:
-    - terraform --version
-    - terraform init -backend=false $TF_PATH
 validate_terraform:
   stage: validate
   script:
+    - terraform --version
     - terraform init -backend=false $TF_PATH
     - terraform validate $TF_PATH
     - terraform fmt -check=true $TF_PATH
