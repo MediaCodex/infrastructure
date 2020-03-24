@@ -5,9 +5,8 @@ locals {
 variable "environments" {
   type = map(string)
   default = {
-    root = "root"
-    dev  = "dev"
-    prod = "prod"
+    development = "dev"
+    production  = "prod"
   }
 }
 
