@@ -17,7 +17,7 @@ cache:
 
 stages:
   - validate
-  - tf-init
+  - init
   - plan
   - deploy
 
@@ -74,11 +74,11 @@ stages:
 # pre-deploy
 ###
 init_terraform:
-  stage: tf-init
+  stage: init
   script:
     - terraform --version
     - terraform init -backend=false $TF_PATH
-validate_terrafrom:
+validate_terraform:
   stage: validate
   script:
     - terraform init -backend=false $TF_PATH
@@ -99,7 +99,7 @@ plan_dev:
     variables:
       - $PROD_ONLY == 'true'
 
-deploy_terraform_dev:
+apply_dev:
   <<: *variables_dev
   extends:
     - .deploy
@@ -124,7 +124,7 @@ plan_prod:
   environment:
     name: production
 
-deploy_terraform_prod:
+apply_prod:
   <<: *variables_prod
   extends: 
     - .deploy
