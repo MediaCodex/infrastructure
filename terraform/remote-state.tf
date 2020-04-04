@@ -4,7 +4,6 @@ resource "aws_s3_bucket" "terraform_state" {
 
   versioning {
     enabled = true
-    // TODO: mfa_delete = true
   }
 
   server_side_encryption_configuration {
