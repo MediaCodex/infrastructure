@@ -14,9 +14,8 @@ variable "default_tags" {
   type        = map(string)
   description = "Common resource tags for all resources"
   default = {
-    Service = "Infrastructure"
+    Service = "infrastructure"
   }
-  # TODO: add stage
 }
 
 variable "domains" {
