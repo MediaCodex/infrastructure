@@ -28,16 +28,6 @@ resource "aws_iam_role_policy" "terraform_state" {
 }
 data "aws_iam_policy_document" "terraform_state" {
   statement {
-    sid = "S3State"
-    actions = [
-      "s3:GetObject",
-      "s3:GetObjectVersion",
-      "s3:PutObject"
-    ]
-    resources = ["${local.bucket}/env:/${var.workspace}/${var.service}.tfstate"]
-  }
-
-    statement {
     sid = "S3ListObjects"
     actions = [
       "s3:ListBucket"
@@ -53,5 +43,21 @@ data "aws_iam_policy_document" "terraform_state" {
       "dynamodb:DeleteItem"
     ]
     resources = [local.table]
+  }
+
+  // Development
+  statement {
+    sid = "DevelopmentS3State"
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion",
+      "s3:PutObject"
+    ]
+    resources = ["${local.bucket}/env:/development/${var.service}.tfstate"]
+    condition {
+      test = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [local.account_dev]
+    }
   }
 }

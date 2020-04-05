@@ -5,28 +5,13 @@
 
 Since this is essentially the core of all of the MediaCodex projects, this is the repo that need to be deployed first.
 
-## Init Terraform
+## Remote-state access
 
-If the project has never been deployed before then you will need to comment out the backend configuration and
-deploy the stack once first so that the TF backend (state bucket and lock table) exist. Once the backend exists
-then you should re-enable the backend and set the bucket name, as explained below.
+Due to the way that Terraform workspaces work all of the remote backend state storage/locking is on the root AWS account. For the deployment users (one per environment)
+to be able to access the backend, the root account needs an IAM role to be deployed. Because it is difficult to modify Terraform's backend per workspace, there is currently
+only a single role for both `development` and `production` to share.
 
-## Environment variables
-
-Set the bucket name for the backend state to use. Due to [limitations in Terraform](https://github.com/hashicorp/terraform/issues/13022),
-this need to be [handled specially](https://github.com/hashicorp/terraform/pull/20428#issuecomment-470674564). Below is and example shell
-script that you can `source` into your env
-
-```shell
-TF_STATE_BUCKET='some-bucket-name'
-export TF_CLI_ARGS_init="-backend-config=\"bucket=${TF_STATE_BUCKET}\""
-```
-
-Alternatively you can just add it to the init CLI, like so `terraform init -backend-config="bucket=some-bucket-name" terraform/`
-
-
-| Name                 | Required | Description                                                                                | Default Value    |
-| -------------------- | -------- | ------------------------------------------------------------------------------------------ | ---------------- |
-| CLOUDFLARE_API_TOKEN | Yes      | [Cloudflare Authentication](https://www.terraform.io/docs/providers/cloudflare/index.html) |                  |
-| SONAR_HOST_URL       | No       | Sonar host                                                                                 | Configured in CI |
-| SONAR_TOKEN          | No       | Sonar auth                                                                                 | Configured in CI |
+Since it is impossible to lock down specific dynamo items via IAM there is little to nothing that can be done to secure which environment has access the the various locks.
+The actual state, on the other hand, is secured by adding a condition to the IAM policy so that the directories inside S3 can only be access when the IAM use that's assuming
+the role comes from the correct account. For example, the development deploy user belongs to the development AWS account, and as such can only access the state files that
+reside within the `env:/development/` bucket path.
