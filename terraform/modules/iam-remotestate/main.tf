@@ -45,15 +45,27 @@ data "aws_iam_policy_document" "terraform_state" {
     resources = [local.table]
   }
 
-  // Development
+  // Development PUT
   statement {
-    sid = "DevelopmentS3State"
+    sid = "DevelopmentPutState"
     actions = [
-      "s3:GetObject",
-      "s3:GetObjectVersion",
       "s3:PutObject"
     ]
     resources = ["${local.bucket}/env:/development/${var.service}.tfstate"]
+    condition {
+      test = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [local.account_dev]
+    }
+  }
+
+  // Development GET
+  statement {
+    sid = "DevelopmentGetStates"
+    actions = [
+      "s3:GetObject"
+    ]
+    resources = ["${local.bucket}/env:/development/*.tfstate"]
     condition {
       test = "StringEquals"
       variable = "aws:PrincipalAccount"
