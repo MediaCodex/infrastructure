@@ -82,7 +82,7 @@ validate_terraform:
     - terraform --version
     - terraform init -backend=false $TF_PATH
     - terraform validate $TF_PATH
-    - terraform fmt -check=true $TF_PATH
+    - terraform fmt -check=true -recursive=true $TF_PATH
 
 ###
 # Dev
