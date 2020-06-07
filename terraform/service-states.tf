@@ -17,3 +17,13 @@ module "remotestate_core" {
   service   = "core"
   user      = "arn:aws:iam::949257948165:user/deployment/deploy-core"
 }
+
+/**
+ * Anime
+ */
+module "remotestate_anime" {
+  source    = "./modules/iam-remotestate"
+  workspace = "development"
+  service   = "anime"
+  user      = "arn:aws:iam::949257948165:user/deployment/deploy-anime"
+}
