@@ -1,19 +1,19 @@
-image:
-  name: hashicorp/terraform:light
-  entrypoint:
-    - '/usr/bin/env'
-    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+default:
+  image:
+    name: hashicorp/terraform:light
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .terraform
 
 variables:
   TF_PLAN: plan.tfplan
   TF_PATH: terraform/
   TF_IN_AUTOMATION: "true"
   PROD_ONLY: 'false'
-
-cache:
-  key: "$CI_COMMIT_REF_SLUG"
-  paths:
-    - .terraform
 
 stages:
   - validate
