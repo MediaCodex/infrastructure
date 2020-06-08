@@ -1,3 +1,6 @@
+inherit:
+  default: false
+
 default:
   image:
     name: hashicorp/terraform:light
