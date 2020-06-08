@@ -1,12 +1,4 @@
-inherit:
-  default: false
-
 default:
-  image:
-    name: hashicorp/terraform:light
-    entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   cache:
     key: "$CI_COMMIT_REF_SLUG"
     paths:
@@ -22,6 +14,13 @@ stages:
   - validate
   - plan
   - deploy
+
+.terraform-image:
+  image:
+    name: hashicorp/terraform:light
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 .variables_prod: &variables_prod
   variables:
@@ -79,6 +78,8 @@ stages:
 # pre-deploy
 ###
 validate_terraform:
+  extends:
+    - .terraform-image
   stage: validate
   script:
     - terraform --version
@@ -94,6 +95,7 @@ plan_dev:
   extends:
     - .plan
     - .plan_review
+    - .terraform-image
   environment:
     name: development
   except:
@@ -104,6 +106,7 @@ apply_dev:
   <<: *variables_dev
   extends:
     - .deploy
+    - .terraform-image
   environment:
     name: development
   dependencies:
@@ -122,6 +125,7 @@ plan_prod:
   extends:
     - .plan
     - .plan_review
+    - .terraform-image
   environment:
     name: production
 
@@ -129,6 +133,7 @@ apply_prod:
   <<: *variables_prod
   extends: 
     - .deploy
+    - .terraform-image
   environment:
     name: production
   dependencies:
