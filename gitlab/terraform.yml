@@ -88,7 +88,7 @@ validate_terraform (dev):
   stage: validate
   script:
     - terraform --version
-    - terraform init -backend=false $TF_PATH
+    - terraform init $TF_PATH
     - terraform workspace select development $TF_PATH
     - terraform validate $TF_PATH
     - terraform fmt -check=true -recursive=true $TF_PATH
@@ -103,7 +103,7 @@ validate_terraform (prod):
   stage: validate
   script:
     - terraform --version
-    - terraform init -backend=false $TF_PATH
+    - terraform init $TF_PATH
     - terraform workspace select production $TF_PATH
     - terraform validate $TF_PATH
     - terraform fmt -check=true -recursive=true $TF_PATH
