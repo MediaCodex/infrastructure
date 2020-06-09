@@ -27,3 +27,13 @@ module "remotestate_anime" {
   service   = "anime"
   user      = "arn:aws:iam::949257948165:user/deployment/deploy-anime"
 }
+
+/**
+ * Website
+ */
+module "remotestate_website" {
+  source    = "./modules/iam-remotestate"
+  workspace = "development"
+  service   = "website"
+  user      = "arn:aws:iam::949257948165:user/deployment/deploy-website"
+}
