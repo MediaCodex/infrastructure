@@ -52,11 +52,6 @@ data "aws_iam_policy_document" "terraform_state" {
       "s3:PutObject"
     ]
     resources = ["${local.bucket}/env:/development/${var.service}.tfstate"]
-    condition {
-      test     = "StringEquals"
-      variable = "aws:PrincipalAccount"
-      values   = [local.account_dev]
-    }
   }
 
   // Development GET
@@ -66,10 +61,5 @@ data "aws_iam_policy_document" "terraform_state" {
       "s3:GetObject"
     ]
     resources = ["${local.bucket}/env:/development/*.tfstate"]
-    condition {
-      test     = "StringEquals"
-      variable = "aws:PrincipalAccount"
-      values   = [local.account_dev]
-    }
   }
 }
