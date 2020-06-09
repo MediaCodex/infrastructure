@@ -2,7 +2,7 @@
  * Assumable Role
  */
 resource "aws_iam_role" "remotestate" {
-  path = "/remotestate/"
+  path               = "/remotestate/"
   name               = var.service
   description        = "Deployment role for '${var.service}' service"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
@@ -53,9 +53,9 @@ data "aws_iam_policy_document" "terraform_state" {
     ]
     resources = ["${local.bucket}/env:/development/${var.service}.tfstate"]
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "aws:PrincipalAccount"
-      values = [local.account_dev]
+      values   = [local.account_dev]
     }
   }
 
@@ -67,9 +67,9 @@ data "aws_iam_policy_document" "terraform_state" {
     ]
     resources = ["${local.bucket}/env:/development/*.tfstate"]
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "aws:PrincipalAccount"
-      values = [local.account_dev]
+      values   = [local.account_dev]
     }
   }
 }
