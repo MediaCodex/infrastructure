@@ -22,12 +22,12 @@ stages:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
-.variables_prod: &variables_prod
+.aws_prod:
   variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_prod
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_prod
 
-.variables_dev: &variables_dev
+.aws_dev:
   variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_dev
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_dev
@@ -95,8 +95,8 @@ validate_terraform:
 # Dev
 ###
 plan_dev:
-  <<: *variables_dev
   extends:
+    - .aws_dev
     - .plan
     - .plan_review
   environment:
@@ -106,8 +106,8 @@ plan_dev:
       - $PROD_ONLY == 'true'
 
 apply_dev:
-  <<: *variables_dev
   extends:
+    - .aws_dev
     - .apply
   environment:
     name: development
@@ -123,16 +123,16 @@ apply_dev:
 # Prod
 ###
 plan_prod:
-  <<: *variables_prod
   extends:
+    - .aws_prod
     - .plan
     - .plan_review
   environment:
     name: production
 
 apply_prod:
-  <<: *variables_prod
-  extends: 
+  extends:
+    - .aws_prod
     - .apply
   environment:
     name: production
