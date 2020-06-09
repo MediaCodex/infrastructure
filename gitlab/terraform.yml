@@ -81,15 +81,34 @@ stages:
 ###
 # pre-deploy
 ###
-validate_terraform:
+validate_terraform (dev):
   extends:
     - .terraform-image
+    - .aws_dev
   stage: validate
   script:
     - terraform --version
     - terraform init -backend=false $TF_PATH
     - terraform validate $TF_PATH
     - terraform fmt -check=true -recursive=true $TF_PATH
+  only:
+    variables:
+      - $PROD_ONLY == 'false'
+
+validate_terraform (prod):
+  extends:
+    - .terraform-image
+    - .aws_prod
+  stage: validate
+  script:
+    - terraform --version
+    - terraform init -backend=false $TF_PATH
+    - terraform validate $TF_PATH
+    - terraform fmt -check=true -recursive=true $TF_PATH
+  only:
+    variables:
+      - $PROD_ONLY == 'true'
+
 
 ###
 # Dev
