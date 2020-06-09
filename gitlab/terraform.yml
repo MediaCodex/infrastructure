@@ -56,6 +56,8 @@ stages:
 
 .plan:
   stage: plan
+  extends:
+    - .terraform-image
   script:
     - terraform init $TF_PATH
     - terraform workspace select $CI_ENVIRONMENT_NAME $TF_PATH
@@ -67,8 +69,10 @@ stages:
   only:
     - merge_requests
 
-.deploy:
+.apply:
   stage: deploy
+  extends:
+    - .terraform-image
   script:
     - terraform init $TF_PATH
     - terraform workspace select $CI_ENVIRONMENT_NAME $TF_PATH
@@ -95,7 +99,6 @@ plan_dev:
   extends:
     - .plan
     - .plan_review
-    - .terraform-image
   environment:
     name: development
   except:
@@ -105,8 +108,7 @@ plan_dev:
 apply_dev:
   <<: *variables_dev
   extends:
-    - .deploy
-    - .terraform-image
+    - .apply
   environment:
     name: development
   dependencies:
@@ -125,15 +127,13 @@ plan_prod:
   extends:
     - .plan
     - .plan_review
-    - .terraform-image
   environment:
     name: production
 
 apply_prod:
   <<: *variables_prod
   extends: 
-    - .deploy
-    - .terraform-image
+    - .apply
   environment:
     name: production
   dependencies:
