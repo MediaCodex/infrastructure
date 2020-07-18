@@ -29,6 +29,16 @@ module "remotestate_anime" {
 }
 
 /**
+ * Companies
+ */
+module "companies" {
+  source    = "./modules/iam-remotestate"
+  workspace = "development"
+  service   = "companies"
+  user      = "arn:aws:iam::949257948165:user/deployment/deploy-companies"
+}
+
+/**
  * Website
  */
 module "remotestate_website" {
