@@ -129,6 +129,7 @@ apply_dev:
   stage: deploy_dev
   extends:
     - .aws_dev
+    - .apply
   environment:
     name: development
   dependencies:
@@ -159,6 +160,7 @@ apply_prod:
     name: production
   dependencies:
     - plan_prod
+    - apply_dev
   only:
     - master
   when: manual
