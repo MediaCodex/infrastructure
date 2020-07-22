@@ -13,7 +13,8 @@ variables:
 stages:
   - validate
   - plan
-  - deploy
+  - deploy_dev
+  - deploy_prod
 
 .terraform-image:
   image:
@@ -70,7 +71,6 @@ stages:
     - merge_requests
 
 .apply:
-  stage: deploy
   extends:
     - .terraform-image
   script:
@@ -126,9 +126,9 @@ plan_dev:
       - $PROD_ONLY == 'true'
 
 apply_dev:
+  stage: deploy_dev
   extends:
     - .aws_dev
-    - .apply
   environment:
     name: development
   dependencies:
@@ -151,6 +151,7 @@ plan_prod:
     name: production
 
 apply_prod:
+  stage: deploy_prod
   extends:
     - .aws_prod
     - .apply
