@@ -19,6 +19,16 @@ module "remotestate_core" {
 }
 
 /**
+ * Website
+ */
+module "remotestate_website" {
+  source    = "./modules/iam-remotestate"
+  workspace = "development"
+  service   = "website"
+  user      = "arn:aws:iam::949257948165:user/deployment/deploy-website"
+}
+
+/**
  * Anime
  */
 module "remotestate_anime" {
@@ -39,11 +49,11 @@ module "companies" {
 }
 
 /**
- * Website
+ * People
  */
-module "remotestate_website" {
+module "people" {
   source    = "./modules/iam-remotestate"
   workspace = "development"
-  service   = "website"
-  user      = "arn:aws:iam::949257948165:user/deployment/deploy-website"
+  service   = "people"
+  user      = "arn:aws:iam::949257948165:user/deployment/deploy-people"
 }
