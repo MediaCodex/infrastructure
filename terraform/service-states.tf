@@ -57,3 +57,13 @@ module "people" {
   service   = "people"
   user      = "arn:aws:iam::949257948165:user/deployment/deploy-people"
 }
+
+/**
+ * Search
+ */
+module "search" {
+  source    = "./modules/iam-remotestate"
+  workspace = "development"
+  service   = "search"
+  user      = "arn:aws:iam::949257948165:user/deployment/deploy-search"
+}
