@@ -5,8 +5,7 @@ locals {
 variable "environments" {
   type = map(string)
   default = {
-    development = "dev"
-    production  = "prod"
+    prod = "prod"
   }
 }
 
@@ -24,4 +23,9 @@ variable "domains" {
     dev  = "mediacodex.dev"
     prod = "mediacodex.net"
   }
+}
+
+variable "github_oauth_client" {
+  type        = string
+  description = "ID of the OAuth client for Github VCS access"
 }

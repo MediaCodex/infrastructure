@@ -24,10 +24,18 @@ variable "deploy_aws_accounts" {
 }
 
 provider "aws" {
-  version             = "~> 2.0"
   region              = "eu-central-1"
   allowed_account_ids = var.deploy_aws_accounts[local.environment]
   assume_role {
     role_arn = var.deploy_aws_roles[local.environment]
   }
+}
+
+provider "github" {
+  organization = "MediaCodex"
+}
+
+provider "tfe" {}
+data "tfe_oauth_client" "github" {
+  oauth_client_id = "oc-ikn89H5cxDyCeunt"
 }
