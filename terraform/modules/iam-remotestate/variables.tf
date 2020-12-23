@@ -5,7 +5,8 @@ locals {
 
   account_dev = "949257948165"
 
-  workspaces  = merge(
+  # calculate which workspaces to account for based on which user ARNs are present
+  workspaces = merge(
     var.user_dev == "" ? {} : { dev = var.user_dev },
     var.user_prod == "" ? {} : { prod = var.user_prod }
   )

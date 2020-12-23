@@ -2,24 +2,23 @@
  * Assumable Role
  */
 resource "aws_iam_role" "remotestate" {
-  for_each = local.workspaces
-
   path        = "/remotestate/"
-  name        = "${each.key}-${var.service}"
-  description = "[${each.key}] deployment role for '${var.service}' service"
+  name        = var.service
+  description = "Deployment role for '${var.service}' service"
 
-  assume_role_policy = data.aws_iam_policy_document.assume_role[each.key].json
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 data "aws_iam_policy_document" "assume_role" {
-  for_each = local.workspaces
-
   statement {
     actions = ["sts:AssumeRole"]
 
     principals {
       type        = "AWS"
-      identifiers = [each.value]
+      identifiers = flatten([
+        var.user_dev == "" ? [] : [var.user_dev],
+        var.user_prod == "" ? [] : [var.user_prod] 
+      ])
     }
   }
 }
@@ -28,15 +27,12 @@ data "aws_iam_policy_document" "assume_role" {
  * Access policy
  */
 resource "aws_iam_role_policy" "terraform_state" {
-  for_each = local.workspaces
   name   = "TerraformRemoteState"
-  role   = aws_iam_role.remotestate[each.key].id
-  policy = data.aws_iam_policy_document.terraform_state[each.key].json
+  role   = aws_iam_role.remotestate.id
+  policy = data.aws_iam_policy_document.terraform_state.json
 }
 
 data "aws_iam_policy_document" "terraform_state" {
-  for_each = local.workspaces
-
   statement {
     sid = "S3ListObjects"
     actions = [
@@ -55,25 +51,47 @@ data "aws_iam_policy_document" "terraform_state" {
     resources = [local.lock_table]
   }
 
-  statement {
-    sid = "PutStateAndPlans"
-    actions = [
-      "s3:PutObject"
-    ]
-    resources = [
-      "${local.state_bucket}/env:/${each.key}/${var.service}.tfstate",
-      "${local.plan_bucket}/${each.key}/${var.service}/*.tfplan"
-    ]
+  dynamic "statement" {
+    for_each = local.workspaces
+    content {
+      sid  = "${title(statement.key)}PutObjects"
+
+      actions = [
+        "s3:PutObject"
+      ]
+
+      resources = [
+        "${local.state_bucket}/env:/${statement.key}/${var.service}.tfstate",
+        "${local.plan_bucket}/${statement.key}/${var.service}/*.tfplan"
+      ]
+
+      condition {
+        test     = "ArnEquals"
+        variable = "aws:PrincipalArn"
+        values   = [statement.value]
+      }
+    }
   }
 
-  statement {
-    sid = "GetStatesAndPlans"
-    actions = [
-      "s3:GetObject"
-    ]
-    resources = [
-      "${local.state_bucket}/env:/${each.key}/*.tfstate",
-      "${local.plan_bucket}/${each.key}/${var.service}/*.tfplan"
-    ]
+  dynamic "statement" {
+    for_each = local.workspaces
+    content {
+      sid = "${title(statement.key)}GetObjects"
+
+      actions = [
+        "s3:GetObject"
+      ]
+
+      resources = [
+        "${local.state_bucket}/env:/${statement.key}/*.tfstate",
+        "${local.plan_bucket}/${statement.key}/${var.service}/*.tfplan"
+      ]
+
+      condition {
+        test     = "ArnEquals"
+        variable = "aws:PrincipalArn"
+        values   = [statement.value]
+      }
+    }
   }
 }
