@@ -11,23 +11,43 @@ terraform {
 variable "deploy_aws_roles" {
   type = map(string)
   default = {
-    dev  = ""
+    dev  = "arn:aws:iam::949257948165:role/OrganizationAccountAccessRole"
     prod = ""
   }
 }
 
+
 variable "deploy_aws_accounts" {
   type = map(list(string))
   default = {
-    prod = ["939514526661"]
+    dev  = ["949257948165"]
+    prod = [""]
   }
 }
 
 provider "aws" {
-  region              = "eu-central-1"
-  allowed_account_ids = var.deploy_aws_accounts[local.environment]
+  region = "eu-central-1"
+}
+
+provider "aws" {
+  alias  = "dev"
+  region = "us-east-1"
+
+  allowed_account_ids = var.deploy_aws_accounts["dev"]
+
   assume_role {
-    role_arn = var.deploy_aws_roles[local.environment]
+    role_arn = var.deploy_aws_roles["dev"]
+  }
+}
+
+provider "aws" {
+  alias  = "prod"
+  region = "us-east-1"
+
+  allowed_account_ids = var.deploy_aws_accounts["prod"]
+
+  assume_role {
+    role_arn = var.deploy_aws_roles["prod"]
   }
 }
 
