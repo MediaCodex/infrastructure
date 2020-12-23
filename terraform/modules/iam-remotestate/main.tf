@@ -2,18 +2,24 @@
  * Assumable Role
  */
 resource "aws_iam_role" "remotestate" {
-  path               = "/remotestate/"
-  name               = var.service
-  description        = "Deployment role for '${var.service}' service"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  for_each = local.workspaces
+
+  path        = "/remotestate/"
+  name        = "${each.key}-${var.service}"
+  description = "[${each.key}] deployment role for '${var.service}' service"
+
+  assume_role_policy = data.aws_iam_policy_document.assume_role[each.key].json
 }
+
 data "aws_iam_policy_document" "assume_role" {
+  for_each = local.workspaces
+
   statement {
     actions = ["sts:AssumeRole"]
 
     principals {
       type        = "AWS"
-      identifiers = [var.user]
+      identifiers = [each.value]
     }
   }
 }
@@ -22,17 +28,21 @@ data "aws_iam_policy_document" "assume_role" {
  * Access policy
  */
 resource "aws_iam_role_policy" "terraform_state" {
+  for_each = local.workspaces
   name   = "TerraformRemoteState"
-  role   = aws_iam_role.remotestate.id
-  policy = data.aws_iam_policy_document.terraform_state.json
+  role   = aws_iam_role.remotestate[each.key].id
+  policy = data.aws_iam_policy_document.terraform_state[each.key].json
 }
+
 data "aws_iam_policy_document" "terraform_state" {
+  for_each = local.workspaces
+
   statement {
     sid = "S3ListObjects"
     actions = [
       "s3:ListBucket"
     ]
-    resources = [local.bucket]
+    resources = [local.state_bucket, local.plan_bucket]
   }
 
   statement {
@@ -42,24 +52,28 @@ data "aws_iam_policy_document" "terraform_state" {
       "dynamodb:PutItem",
       "dynamodb:DeleteItem"
     ]
-    resources = [local.table]
+    resources = [local.lock_table]
   }
 
-  // Development PUT
   statement {
-    sid = "DevelopmentPutState"
+    sid = "PutStateAndPlans"
     actions = [
       "s3:PutObject"
     ]
-    resources = ["${local.bucket}/env:/development/${var.service}.tfstate"]
+    resources = [
+      "${local.state_bucket}/env:/${each.key}/${var.service}.tfstate",
+      "${local.plan_bucket}/${each.key}/${var.service}/*.tfplan"
+    ]
   }
 
-  // Development GET
   statement {
-    sid = "DevelopmentGetStates"
+    sid = "GetStatesAndPlans"
     actions = [
       "s3:GetObject"
     ]
-    resources = ["${local.bucket}/env:/development/*.tfstate"]
+    resources = [
+      "${local.state_bucket}/env:/${each.key}/*.tfstate",
+      "${local.plan_bucket}/${each.key}/${var.service}/*.tfplan"
+    ]
   }
 }
