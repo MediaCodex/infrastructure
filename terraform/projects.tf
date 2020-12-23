@@ -1,3 +1,6 @@
+/*
+ * Special projects
+ */
 module "project_infrastructure" {
   source       = "./modules/project"
   github_token = data.tfe_oauth_client.github.oauth_token_id
